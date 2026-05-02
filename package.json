@@ -1,0 +1,29 @@
+{
+  "name": "mood-habit-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "description": "A multi-page interactive website for tracking mood, habits, goals, and progress.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ruinch/web1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Ruinch/web1/issues"
+  },
+  "homepage": "https://github.com/Ruinch/web1#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.20.0"
+  }
+}
