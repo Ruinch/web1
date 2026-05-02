@@ -1,42 +1,112 @@
-function validateForm() {
-  let valid = true;
+(() => {
+  const validators = {
+    name(value) {
+      if (!value.trim()) return 'Name is required.';
+      return '';
+    },
+    email(value) {
+      if (!value.trim()) return 'Email is required.';
+      const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return pattern.test(value.trim()) ? '' : 'Enter a valid email address.';
+    },
+    mood(value) {
+      return value ? '' : 'Please select a mood.';
+    },
+    password(value) {
+      if (!value) return 'Password is required.';
+      if (value.length < 6) return 'Password must be at least 6 characters.';
+      return '';
+    },
+    habits(values) {
+      return values.length ? '' : 'Select at least one habit.';
+    }
+  };
 
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  const habits = document.querySelectorAll('input[type="checkbox"]:checked');
-
-  // Name
-  if (!name) {
-    document.getElementById("nameError").innerText = "Name required";
-    valid = false;
-  } else {
-    document.getElementById("nameError").innerText = "";
+  function getHabitValues(form) {
+    return Array.from(form.querySelectorAll('input[name="habits"]:checked')).map(cb => cb.value);
   }
 
-  // Email
-  if (!email.includes("@")) {
-    document.getElementById("emailError").innerText = "Invalid email";
-    valid = false;
-  } else {
-    document.getElementById("emailError").innerText = "";
+  function setFieldError(errorId, message) {
+    const errorBox = document.getElementById(errorId);
+    if (!errorBox) return;
+    errorBox.textContent = message;
   }
 
-  // Password
-  if (password.length < 6) {
-    document.getElementById("passwordError").innerText = "Min 6 characters";
-    valid = false;
-  } else {
-    document.getElementById("passwordError").innerText = "";
+  function setInvalidState(field, isInvalid) {
+    if (!field) return;
+    field.classList.toggle('is-invalid', isInvalid);
+    field.classList.toggle('is-valid', !isInvalid && field.value.trim() !== '');
   }
 
-  // Habits
-  if (habits.length === 0) {
-    document.getElementById("habitError").innerText = "Select at least one";
-    valid = false;
-  } else {
-    document.getElementById("habitError").innerText = "";
+  function validateField(form, fieldName) {
+    let error = '';
+    let field = form.querySelector(`[name="${fieldName}"]`);
+
+    if (fieldName === 'habits') {
+      error = validators.habits(getHabitValues(form));
+      setFieldError('habitsError', error);
+      form.querySelectorAll('input[name="habits"]').forEach(cb => cb.classList.toggle('is-invalid', !!error));
+      return !error;
+    }
+
+    if (!field) return true;
+
+    const value = field.value;
+    error = validators[fieldName](value);
+
+    const errorMap = {
+      name: 'nameError',
+      email: 'emailError',
+      mood: 'moodError',
+      password: 'passwordError'
+    };
+
+    setFieldError(errorMap[fieldName], error);
+    setInvalidState(field, !!error);
+    return !error;
   }
 
-  return valid;
-}
+  function validateForm(form) {
+    const fields = ['name', 'email', 'mood', 'password', 'habits'];
+    let valid = true;
+
+    fields.forEach(fieldName => {
+      const ok = validateField(form, fieldName);
+      if (!ok) valid = false;
+    });
+
+    return valid;
+  }
+
+  function bindRealTimeValidation(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return null;
+
+    const inputNames = ['name', 'email', 'mood', 'password'];
+
+    inputNames.forEach(name => {
+      const field = form.querySelector(`[name="${name}"]`);
+      if (!field) return;
+
+      field.addEventListener('input', () => validateField(form, name));
+      field.addEventListener('blur', () => validateField(form, name));
+      if (name === 'mood') {
+        field.addEventListener('change', () => validateField(form, name));
+      }
+    });
+
+    form.querySelectorAll('input[name="habits"]').forEach(cb => {
+      cb.addEventListener('change', () => validateField(form, 'habits'));
+    });
+
+    return form;
+  }
+
+  window.MoodFormValidation = {
+    validators,
+    validateField,
+    validateForm,
+    bindRealTimeValidation,
+    getHabitValues
+  };
+})();
